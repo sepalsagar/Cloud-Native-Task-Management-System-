@@ -1,0 +1,40 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: task-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build:
+      context: ./backend
+    container_name: task-backend
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    ports:
+      - "9000:9000"
+    environment:
+      MONGODB_URI: mongodb://mongodb:27017/task_management
+      FRONTEND_URL: http://localhost:5173
+      PORT: 9000
+      JWT_SECRET: change-me-in-production
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: task-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_BACKEND_URL: http://localhost:9000
+      VITE_FRONTEND_URL: http://localhost:5173
+
+volumes:
+  mongo-data:
